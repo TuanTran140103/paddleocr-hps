@@ -1,0 +1,84 @@
+name: Build and Push Triton Docker Image (via Modal)
+
+on:
+  push:
+    paths:
+      - 'tritonserver.Dockerfile'
+      - 'paddlex_hps_PaddleOCR-VL-1.5_sdk/server/**'
+      - 'modal_build.py'
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Docker image tag (optional)'
+        required: false
+        default: 'latest'
+
+env:
+  DOCKER_IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/paddleocr-triton
+
+jobs:
+  build-on-modal:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for proper versioning
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal CLI
+        run: |
+          pip install modal
+
+      - name: Generate image tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.tag }}" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            # Auto-generate tag from commit SHA
+            SHORT_SHA=$(git rev-parse --short ${{ github.sha }})
+            echo "tag=${SHORT_SHA}" >> $GITHUB_OUTPUT
+            echo "sha_tag=sha-${SHORT_SHA}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and Push via Modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          echo "Starting build on Modal with GPU..."
+          echo "Image: ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.tag.outputs.tag }}"
+          
+          # Get GitHub repo URL
+          REPO_URL="https://github.com/${{ github.repository }}.git"
+          
+          # Chạy build trên Modal
+          modal run modal_build.py \
+            --dockerhub_username $DOCKERHUB_USERNAME \
+            --dockerhub_token $DOCKERHUB_TOKEN \
+            --github_repo $REPO_URL \
+            --image_name paddleocr-triton \
+            --tag ${{ steps.tag.outputs.tag }} \
+            --branch ${{ github.ref_name }}
+          
+          echo "✅ Build and push completed!"
+
+      - name: Output image info
+        run: |
+          echo "=========================================="
+          echo "🎉 Build completed successfully!"
+          echo "=========================================="
+          echo "Image: ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.tag.outputs.tag }}"
+          echo "Pull command: docker pull ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.tag.outputs.tag }}"
+          echo "=========================================="
