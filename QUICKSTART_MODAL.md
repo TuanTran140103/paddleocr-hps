@@ -15,10 +15,10 @@ modal setup
 # Thay YOUR_DOCKERHUB_USERNAME và YOUR_DOCKERHUB_TOKEN bằng thông tin của bạn
 # Thay GITHUB_REPO_URL bằng URL repository của bạn
 modal run modal_build.py \
-  --dockerhub_username YOUR_DOCKERHUB_USERNAME \
-  --dockerhub_token YOUR_DOCKERHUB_TOKEN \
-  --github_repo https://github.com/YOUR_USERNAME/YOUR_REPO.git \
-  --image_name paddleocr-triton \
+  --dockerhub-username YOUR_DOCKERHUB_USERNAME \
+  --dockerhub-token YOUR_DOCKERHUB_TOKEN \
+  --github-repo https://github.com/YOUR_USERNAME/YOUR_REPO.git \
+  --image-name paddleocr-triton \
   --tag latest
 ```
 
@@ -44,23 +44,23 @@ Workflow sẽ tự động chạy khi push code, hoặc chạy thủ công từ 
 ```bash
 # Build với tag custom
 modal run modal_build.py \
-  --dockerhub_username YOUR_USERNAME \
-  --dockerhub_token YOUR_TOKEN \
-  --github_repo https://github.com/YOUR_USERNAME/YOUR_REPO.git \
+  --dockerhub-username YOUR_USERNAME \
+  --dockerhub-token YOUR_TOKEN \
+  --github-repo https://github.com/YOUR_USERNAME/YOUR_REPO.git \
   --tag v1.0.0
 
 # Build với tag từ commit SHA
 modal run modal_build.py \
-  --dockerhub_username YOUR_USERNAME \
-  --dockerhub_token YOUR_TOKEN \
-  --github_repo https://github.com/YOUR_USERNAME/YOUR_REPO.git \
+  --dockerhub-username YOUR_USERNAME \
+  --dockerhub-token YOUR_TOKEN \
+  --github-repo https://github.com/YOUR_USERNAME/YOUR_REPO.git \
   --tag $(git rev-parse --short HEAD)
 
 # Build từ branch khác
 modal run modal_build.py \
-  --dockerhub_username YOUR_USERNAME \
-  --dockerhub_token YOUR_TOKEN \
-  --github_repo https://github.com/YOUR_USERNAME/YOUR_REPO.git \
+  --dockerhub-username YOUR_USERNAME \
+  --dockerhub-token YOUR_TOKEN \
+  --github-repo https://github.com/YOUR_USERNAME/YOUR_REPO.git \
   --branch develop \
   --tag latest
 ```

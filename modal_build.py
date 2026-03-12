@@ -180,17 +180,17 @@ def main(
 ):
     """
     Entry point để chạy build từ local
-    
+
     Usage:
         modal run modal_build.py \
-          --dockerhub_username YOUR_USERNAME \
-          --dockerhub_token YOUR_TOKEN \
-          --github_repo https://github.com/yourusername/yourrepo.git
-    
+          --dockerhub-username YOUR_USERNAME \
+          --dockerhub-token YOUR_TOKEN \
+          --github-repo https://github.com/yourusername/yourrepo.git
+
     Hoặc với environment variables:
         export DOCKERHUB_USERNAME=your_username
         export DOCKERHUB_TOKEN=your_token
-        modal run modal_build.py --github_repo https://github.com/yourusername/yourrepo.git
+        modal run modal_build.py --github-repo https://github.com/yourusername/yourrepo.git
     """
     # Lấy từ env nếu không truyền vào
     username = dockerhub_username or os.environ.get("DOCKERHUB_USERNAME")

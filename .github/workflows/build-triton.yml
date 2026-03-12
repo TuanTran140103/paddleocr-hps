@@ -65,10 +65,10 @@ jobs:
           
           # Chạy build trên Modal
           modal run modal_build.py \
-            --dockerhub_username $DOCKERHUB_USERNAME \
-            --dockerhub_token $DOCKERHUB_TOKEN \
-            --github_repo $REPO_URL \
-            --image_name paddleocr-triton \
+            --dockerhub-username $DOCKERHUB_USERNAME \
+            --dockerhub-token $DOCKERHUB_TOKEN \
+            --github-repo $REPO_URL \
+            --image-name paddleocr-triton \
             --tag ${{ steps.tag.outputs.tag }} \
             --branch ${{ github.ref_name }}
           
