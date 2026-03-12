@@ -1,0 +1,57 @@
+backend: "python"
+max_batch_size: 32
+
+input [
+  {
+    name: "input"
+    data_type: TYPE_STRING
+    dims: [ -1 ]
+  }
+]
+
+output [
+  {
+    name: "output"
+    data_type: TYPE_STRING
+    dims: [ -1 ]
+  }
+]
+
+instance_group [
+  {
+    count: 2
+    kind: KIND_GPU
+    gpus: [ 0 ]
+  }
+]
+
+dynamic_batching {
+  # Ưu tiên throughput cao - phù hợp xử lý hàng loạt PDF
+  preferred_batch_size: [ 16, 32 ]
+  
+  # Thời gian chờ tối đa để gom batch (microseconds)
+  # 100000 microseconds = 100ms - cân bằng giữa latency và throughput
+  max_queue_delay_microseconds: 100000
+  
+  # Không giới hạn số lượng request trong queue
+  max_queue_size: 0
+  
+  # Priority queue để ưu tiên request cũ (FIFO)
+  priority_queue_policy {
+    policy: PRIORITY_LEVEL_FIFO
+  }
+}
+
+optimization {
+  # Cho phép GPU sử dụng CUDA Graphs để tăng performance
+  cuda {
+    graphs {
+      mode: MAX
+    }
+  }
+}
+
+parameters {
+  key: "PYTHON_BUFFER_SHARED_MEMORY"
+  value: { string_value: "104857600" }
+}

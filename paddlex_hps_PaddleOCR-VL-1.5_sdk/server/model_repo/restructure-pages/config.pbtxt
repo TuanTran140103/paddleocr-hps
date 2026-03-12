@@ -1,0 +1,29 @@
+backend: "python"
+max_batch_size: 1
+
+input [
+  {
+    name: "input"
+    data_type: TYPE_STRING
+    dims: [ 1 ]
+  }
+]
+
+output [
+  {
+    name: "output"
+    data_type: TYPE_STRING
+    dims: [ 1 ]
+  }
+]
+
+instance_group [
+  {
+    # TỐI ƯU: Giảm xuống 1 vì KHÔNG dùng đến restructure-pages
+    # Nếu cần dùng lại, tăng lên 4 để tận dụng đa core CPU
+    count: 1
+    kind: KIND_CPU
+  }
+]
+
+# Không cần dynamic batching cho CPU post-processing
