@@ -58,6 +58,6 @@ compose.yaml
 optimize_triton.sh
 prepare.sh
 
-# Gateway (nếu build riêng)
-gateway/
+# Gateway (chỉ ignore khi build tritonserver.Dockerfile)
+# Lưu ý: gateway-triton.Dockerfile cần folder gateway nên không được ignore ở đây
 gateway.Dockerfile
