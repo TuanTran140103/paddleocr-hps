@@ -1,0 +1,63 @@
+# Git
+.git
+.gitignore
+.github
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv
+ENV
+env
+*.egg-info
+dist
+build
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Modal (không cần trong Docker build)
+modal_*.py
+
+# Test files
+*_test.py
+test_*.py
+
+# Documentation
+*.md
+!README.md
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker compose (không cần trong image)
+compose.yaml
+*.env
+.env.example
+.env.optimized
+
+# Scripts không cần thiết trong runtime
+optimize_triton.sh
+prepare.sh
+
+# Gateway (nếu build riêng)
+gateway/
+gateway.Dockerfile

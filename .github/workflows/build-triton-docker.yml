@@ -1,0 +1,90 @@
+name: Build and Push Triton Docker Image
+
+on:
+  push:
+    paths:
+      - 'tritonserver.Dockerfile'
+      - 'paddlex_hps_PaddleOCR-VL-1.5_sdk/server/**'
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Docker image tag (optional)'
+        required: false
+        default: 'latest'
+      device_type:
+        description: 'Device type (cpu or gpu)'
+        required: false
+        default: 'gpu'
+        type: choice
+        options:
+          - gpu
+          - cpu
+
+env:
+  DOCKER_IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/paddleocr-triton
+
+jobs:
+  build-docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate image tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.tag }}" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            SHORT_SHA=$(git rev-parse --short ${{ github.sha }})
+            echo "tag=${SHORT_SHA}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set device type
+        id: device
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.device_type }}" ]; then
+            echo "type=${{ github.event.inputs.device_type }}" >> $GITHUB_OUTPUT
+          else
+            echo "type=gpu" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./tritonserver.Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.device.outputs.type }}
+          build-args: |
+            DEVICE_TYPE=${{ steps.device.outputs.type }}
+            BASE_IMAGE=ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlex/hps:paddlex3.4-${{ steps.device.outputs.type }}
+          cache-from: type=registry,ref=${{ env.DOCKER_IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKER_IMAGE_NAME }}:buildcache,mode=max
+
+      - name: Output image info
+        run: |
+          echo "=========================================="
+          echo "🎉 Build completed successfully!"
+          echo "=========================================="
+          echo "Image: ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.tag.outputs.tag }}"
+          echo "Device Type: ${{ steps.device.outputs.type }}"
+          echo "Pull command: docker pull ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.tag.outputs.tag }}"
+          echo "=========================================="

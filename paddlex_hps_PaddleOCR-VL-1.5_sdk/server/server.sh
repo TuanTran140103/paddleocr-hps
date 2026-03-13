@@ -9,6 +9,9 @@ export PADDLEX_HPS_PIPELINE_CONFIG_PATH="${PADDLEX_HPS_PIPELINE_CONFIG_PATH:-$(r
 
 readonly MODEL_REPO_DIR=/paddlex/var/paddlex_model_repo
 
+# Tạo thư mục nếu chưa tồn tại
+mkdir -p "$(dirname "${MODEL_REPO_DIR}")"
+
 rm -rf "${MODEL_REPO_DIR}"
 
 cp -r model_repo "${MODEL_REPO_DIR}"
