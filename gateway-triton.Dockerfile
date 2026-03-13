@@ -1,5 +1,5 @@
 # Gateway + Triton combined Dockerfile
-# Tái sử dụng image Triton đã build, install thêm gateway dependencies
+# Tái sử dụng image Triton đã build, tạo venv riêng cho Gateway để tránh conflict
 
 FROM tuantran2003/paddleocr-triton:latest
 
@@ -8,16 +8,17 @@ WORKDIR /app
 # Copy gateway code
 COPY gateway/ ./gateway/
 
-# Install web dependencies (chưa có trong base Triton image)
-RUN pip install --no-cache-dir \
-    fastapi==0.123.6 \
-    uvicorn==0.35.0 \
-    tritonclient[grpc]
+# Tạo venv riêng cho Gateway để tránh conflict dependencies
+RUN python -m venv /opt/gateway-venv
 
-# Install paddlex_hps_client từ SDK
+# Install web dependencies trong venv (cô lập với base image)
+RUN /opt/gateway-venv/bin/pip install --no-cache-dir \
+    fastapi==0.123.6 \
+    uvicorn==0.35.0
+
+# Install paddlex_hps_client từ SDK vào venv (với tritonclient>=2.30 riêng)
 COPY paddlex_hps_PaddleOCR-VL-1.5_sdk/client ./sdk/
-RUN pip install --no-cache-dir \
-    -r ./sdk/requirements.txt \
+RUN /opt/gateway-venv/bin/pip install --no-cache-dir \
     ./sdk/paddlex_hps_client-0.3.0-py3-none-any.whl
 
 # Environment variables cho Gateway
@@ -31,7 +32,7 @@ ENV UVICORN_WORKERS=4
 # Expose ports: 8000-8002 cho Triton, 8080 cho Gateway
 EXPOSE 8000 8001 8002 8080
 
-# Start Triton server (background) + Gateway (main process)
+# Start Triton server (background) + Gateway (main process, dùng venv riêng)
 CMD /bin/bash -c "\
     echo '🚀 Starting Triton + Gateway...' && \
     tritonserver \
@@ -48,7 +49,7 @@ CMD /bin/bash -c "\
         sleep 1; \
     done && \
     echo '🚀 Starting Gateway...' && \
-    exec uvicorn \
+    exec /opt/gateway-venv/bin/uvicorn \
         --host 0.0.0.0 \
         --port 8080 \
         --workers \${UVICORN_WORKERS} \
