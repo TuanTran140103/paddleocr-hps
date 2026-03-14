@@ -35,8 +35,12 @@ EXPOSE 8000 8001 8002 8080
 HEALTHCHECK --interval=10s --timeout=5s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8080/health || exit 1
 
+# Setup model repo từ SDK server
+# Copy SDK server vào /sdk_server để dùng khi cần
+COPY paddlex_hps_PaddleOCR-VL-1.5_sdk/server /sdk_server
+
 # Start Triton server (background) + Gateway (foreground)
-# Giống với modal_test_gateway_triton_v3.py đã test thành công
+# Dùng model repo từ /app/model_repo (nơi image base đã copy vào)
 CMD /bin/bash -c "\
     echo '========================================' && \
     echo '🚀 STARTING TRITON + GATEWAY' && \
@@ -45,9 +49,13 @@ CMD /bin/bash -c "\
     echo '📊 GPU Info:' && \
     nvidia-smi --query-gpu=name,memory.total --format=csv,noheader && \
     echo '' && \
+    echo '📁 Model repo:' && \
+    ls -la /app/model_repo 2>/dev/null || echo '   Not found at /app/model_repo' && \
+    ls -la /paddlex/var/paddlex_model_repo 2>/dev/null || echo '   Not found at /paddlex/var/paddlex_model_repo' && \
+    echo '' && \
     echo '🚀 Starting Triton server...' && \
     tritonserver \
-        --model-repository=/paddlex/var/paddlex_model_repo \
+        --model-repository=/app/model_repo \
         --backend-config=python,shm-default-byte-size=104857600,shm-growth-byte-size=10485760 \
         --log-info=1 & \
     TRITON_PID=\$! && \
