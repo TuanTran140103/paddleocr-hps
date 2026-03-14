@@ -72,6 +72,7 @@ jobs:
           push: true
           tags: |
             ${{ env.DOCKER_IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
+            ${{ env.DOCKER_IMAGE_NAME }}:latest
           build-args: |
             DEVICE_TYPE=${{ steps.device.outputs.type }}
             BASE_IMAGE=ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlex/hps:paddlex3.4-${{ steps.device.outputs.type }}

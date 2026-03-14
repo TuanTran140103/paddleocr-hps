@@ -15,6 +15,14 @@ on:
         description: 'Docker image tag (optional)'
         required: false
         default: 'latest'
+  # Trigger khi build Triton image hoàn thành
+  workflow_run:
+    workflows: ["Build and Push Triton Docker Image"]
+    types:
+      - completed
+    branches:
+      - main
+      - master
 
 env:
   DOCKER_IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/paddleocr-gateway-triton
@@ -22,6 +30,8 @@ env:
 jobs:
   build-docker:
     runs-on: ubuntu-latest
+    # Skip nếu workflow_run trigger từ workflow khác failed
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout repository
